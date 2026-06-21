@@ -6,7 +6,7 @@
 //!     - and so on...
 //!
 //! So what if we unify it all into a super [`Value`](crate::values::Value)?
-#![feature(f16)]
+// #![feature(f16)]
 // #![feature(f128)]
 
 /// The settings for the crate
@@ -21,18 +21,28 @@ pub mod values;
 
 use mirl_extensions::*;
 use mirl_values_core::value::ContainerValue;
+pub use values::Value;
 
 // pub use values::{SimpleValue, ValueType};
-// #[cfg(feature = "serde")]
-// fn to_serde_json_map(val: &MapType<Value, Value>) -> Option<serde_json::Value> {
-//     let mut map = serde_json::map::Map::new();
-//     for (key, item) in val {
-//         map.insert(key.as_string()?.clone(), item.to_serde_json()?);
-//     }
 
-//     Some(serde_json::Value::Object(map))
-// }
-use crate::values::value::{InnerCodecValue, Value};
+#[must_use]
+/// Convert a map to a serde json map
+#[cfg(feature = "serde_json")]
+pub fn to_serde_json_map(
+    val: crate::settings::MapType<
+        Value<DefaultInnerValueSelf>,
+        Value<DefaultInnerValueSelf>,
+    >,
+) -> Option<serde_json::Value> {
+    let mut map = serde_json::map::Map::new();
+    for (key, item) in val {
+        map.insert(key.as_string_ref()?.clone(), item.to_serde_json()?);
+    }
+
+    Some(serde_json::Value::Object(map))
+}
+
+use crate::values::value::{DefaultInnerValueSelf, InnerCodecValue};
 
 impl<W: InnerCodecValue> Value<W> {
     // #[must_use]
@@ -155,34 +165,138 @@ where
         }
     }
 }
+#[must_use]
+/// Convert a number to a serde value
+#[cfg(feature = "serde_json")]
+pub fn number_to_serde_json_number(
+    num: mirl_values_core::value::Number,
+) -> Option<serde_json::Number> {
+    #[cfg(feature = "serde_json_arbitrary_precision")]
+    return Some(match num {
+        mirl_values_core::value::Number::Int(num) => {
+            serde_json::Number::from_string_unchecked(num.to_string())
+        }
+        mirl_values_core::value::Number::Float(num) => {
+            serde_json::Number::from_string_unchecked(num.to_string())
+        }
+        mirl_values_core::value::Number::BigInt(num) => {
+            serde_json::Number::from_string_unchecked(num.to_string())
+        }
+        mirl_values_core::value::Number::BigFloat(num) => {
+            serde_json::Number::from_string_unchecked(num.to_string())
+        }
+    });
+    #[cfg(not(feature = "serde_json_arbitrary_precision"))]
+    match num {
+        mirl_values_core::value::Number::Int(num) => {
+            serde_json::Number::from_i128(num)
+        }
+        mirl_values_core::value::Number::Float(num) => {
+            serde_json::Number::from_f64(num)
+        }
+        mirl_values_core::value::Number::BigInt(num) => {
+            use num_traits::ToPrimitive;
+
+            serde_json::Number::from_i128(num.to_i128()?)
+        }
+        mirl_values_core::value::Number::BigFloat(num) => {
+            serde_json::Number::from_f64(num.to_f64())
+        }
+    }
+}
+impl FromPatch<Self> for Value<DefaultInnerValueSelf> {
+    fn from_value(value: Self) -> Self {
+        value
+    }
+}
 
 #[cfg(feature = "serde_json")]
-impl Value<PositionedValueInner> {
+impl<V: InnerCodecValue> Value<V>
+where
+    Self: IntoPatch<Value<DefaultInnerValueSelf>>,
+{
     #[must_use]
-    /// Convert this value type to [`serde_json::Value`] uses, this looses the position information
-    pub fn to_serde_json(&self) -> Option<serde_json::Value> {
-        use std::str::FromStr;
-
-        Some(match self {
-            Self::Vec(val, _) => {
-                let list: Vec<Option<serde_json::Value>> =
-                    val.iter().map(Self::to_serde_json).collect();
-                if list.contains(&None) {
-                    return None;
-                }
-                let list = list
-                    .iter()
-                    .map(|x| unsafe { x.clone().unwrap_unchecked() })
-                    .collect();
-                serde_json::Value::Vec(list)
+    /// Convert the given [`Value`] into a [`serde_json::Value`] if possible.
+    ///
+    /// The given [`Value`] must implement [`IntoPatch`] to convert into [`Value<DefaultInnerValueSelf>`]
+    pub fn to_serde_json(self) -> Option<serde_json::Value> {
+        value_to_serde_json(self.into_value())
+    }
+}
+#[cfg(feature = "serde_json")]
+impl<V: InnerCodecValue> Value<V>
+where
+    Self: Into<Value<DefaultInnerValueSelf>>,
+{
+    #[must_use]
+    /// Convert the given [`Value`] into a [`serde_json::Value`] if possible.
+    ///
+    /// The given [`Value`] must implement [`Into`] to convert into [`Value<DefaultInnerValueSelf>`]
+    pub fn to_serde_json_fallback(self) -> Option<serde_json::Value> {
+        value_to_serde_json(self.into())
+    }
+}
+#[cfg(feature = "serde_json")]
+use mirl_values_core::value::SimpleValue;
+/// Convert a [`SimpleValue`] into a [`serde_json::Value`] if possible
+#[cfg(feature = "serde_json")]
+#[must_use]
+pub fn simple_value_to_serde_json(
+    simple: SimpleValue,
+) -> Option<serde_json::Value> {
+    match simple {
+        SimpleValue::Bool(bool) => Some(serde_json::Value::Bool(bool)),
+        SimpleValue::None => Some(serde_json::Value::Null),
+        SimpleValue::Number(num) => {
+            Some(serde_json::Value::Number(number_to_serde_json_number(num)?))
+        }
+        SimpleValue::String(string) => Some(serde_json::Value::String(string)),
+        SimpleValue::Angle(_, _)
+        | SimpleValue::Bytes(_, _)
+        | SimpleValue::Color(_)
+        | SimpleValue::DateTime(_)
+        | SimpleValue::Length(_, _)
+        | SimpleValue::Literal(_)
+        | SimpleValue::Time(_) => None,
+    }
+}
+/// Convert a [`ContainerValue`] into a [`serde_json::Value`] if possible
+#[must_use]
+#[cfg(feature = "serde_json")]
+pub fn container_value_to_serde_json(
+    container: ContainerValue<Value<DefaultInnerValueSelf>>,
+) -> Option<serde_json::Value> {
+    match container {
+        ContainerValue::Map(map) => {
+            to_serde_json_map(crate::settings::MapType {
+                map: map.into_iter().map(|x| (x.0, x.1)).collect::<Vec<_>>(),
+            })
+        }
+        ContainerValue::Vec(vec) => {
+            let list: Vec<Option<serde_json::Value>> = vec
+                .into_iter()
+                .map(values::value::Value::to_serde_json)
+                .collect();
+            if list.contains(&None) {
+                return None;
             }
-            Self::Bool(val, _) => serde_json::Value::Bool(*val),
-            Self::Map(map, _) => to_serde_json_map(map)?,
-            Self::Number(num, _) => serde_json::Value::Number(
-                serde_json::Number::from_str(num).ok()?,
-            ),
-            Self::String(val, _, _) => serde_json::Value::String(val.clone()),
-            Self::None(_) => serde_json::Value::Null,
-        })
+            let list = list
+                .iter()
+                .map(|x| unsafe { x.clone().unwrap_unchecked() })
+                .collect();
+            Some(serde_json::Value::Array(list))
+        }
+    }
+}
+
+#[cfg(feature = "serde_json")]
+#[must_use]
+/// Convert this value type to [`serde_json::Value`] uses, this looses the position information
+pub fn value_to_serde_json(
+    val: Value<DefaultInnerValueSelf>,
+) -> Option<serde_json::Value> {
+    match val {
+        Value::Simple(simple) => simple_value_to_serde_json(simple),
+        Value::Container(container) => container_value_to_serde_json(container),
     }
 }

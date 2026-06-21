@@ -5,13 +5,13 @@ use std::convert::TryFrom;
 use num_bigfloat::BigFloat;
 use num_bigint::BigInt;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum Number {
-    Int(i128),
-    Float(f64),
-    BigInt(num_bigint::BigInt),
-    BigFloat(num_bigfloat::BigFloat),
-}
+// #[derive(Debug, Clone, PartialEq, PartialOrd)]
+// pub enum Number {
+//     Int(i128),
+//     Float(f64),
+//     BigInt(num_bigint::BigInt),
+//     BigFloat(num_bigfloat::BigFloat),
+// }
 // ── From<T> for Number ────────────────────────────────────────────────────────
 
 // Signed integers → Int
@@ -124,8 +124,9 @@ impl std::fmt::Display for NumberConversionError {
 
 impl std::error::Error for NumberConversionError {}
 
-// Helper: convert a Number to i128 as an intermediate step
-fn number_to_i128(n: &Number) -> Result<i128, NumberConversionError> {
+/// Convert the value to i128
+// TODO: convert a Number to i128 as an intermediate step
+pub fn number_to_i128(n: &Number) -> Result<i128, NumberConversionError> {
     match n {
         Number::Int(i) => Ok(*i),
         Number::Float(f) => {
