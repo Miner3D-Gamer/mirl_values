@@ -3,9 +3,9 @@
 //! Problem:
 //!     - `serde_json` doesn't support datetime from `toml`
 //!     - `toml` doesn't support value length from `css`
-//!     - and so on...
+//!     - and so on, everyone has their own "Value" enum(/struct)
 //!
-//! So what if we unify it all into a super [`Value`](crate::values::Value)?
+//! So what if we unify it every single unique "Value" enum(/struct) into a super [`Value`](crate::values::Value)?
 // #![feature(f16)]
 // #![feature(f128)]
 

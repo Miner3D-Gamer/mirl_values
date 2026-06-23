@@ -6,9 +6,7 @@ impl<W: InnerCodecValue> TryFromPatch<Value<W>> for std::string::String {
         value.into_string()
     }
 }
-impl<T: TryFromPatch<W::Inner>, W: InnerCodecValue> TryFromPatch<Value<W>>
-    for Vec<T>
-{
+impl<T: TryFromPatch<W::Inner>, W: InnerCodecValue> TryFromPatch<Value<W>> for Vec<T> {
     fn try_from_value(value: Value<W>) -> Option<Self> {
         value.into_vec().and_then(|list| {
             let mut output = Self::with_capacity(list.capacity());
