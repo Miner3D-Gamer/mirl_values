@@ -8,7 +8,6 @@ authors.workspace = true
 
 [features]
 all = ["all_codecs", "all_enum_extensions", "toml", "serde_json"]
-
 # Does nothing by itself. Needs another codec or enum flag to do something
 mirl_derive = ["dep:mirl_derive"]
 # Compatibility with ffi
@@ -17,18 +16,15 @@ c_compatible = ["mirl_derive"]
 all_codecs = ["serde", "bitcode", "wincode", "compactly", "zerocopy"]
 # All enum extensions
 all_enum_extensions = ["strum", "enum_ext"]
-
 # Codec stuff
 serde = ["dep:serde", "mirl_derive", "mirl_values_core/serde"]
 bitcode = ["dep:bitcode", "mirl_derive", "mirl_values_core/bitcode"]
 wincode = ["dep:wincode", "mirl_derive", "mirl_values_core/wincode"]
 compactly = ["dep:compactly", "mirl_derive", "mirl_values_core/compactly"]
 zerocopy = ["dep:zerocopy", "mirl_derive", "mirl_values_core/zerocopy"]
-
 # Enum extensions
 strum = ["dep:strum", "mirl_derive"]
 enum_ext = ["dep:enum_ext", "mirl_derive"]
-
 # preserve_entries = ["mirl_values_core/preserve_entries"]
 _checking = ["toml", "serde_json"]
 # Support
@@ -44,28 +40,22 @@ bitcode = { version = "0.6", optional = true, default-features = false, features
 compactly = { version = "0.1", optional = true }
 enum_ext = { version = "0.6", optional = true, default-features = false }
 # lightningcss = { version = "1.0-alpha.71", optional = true }
-
 mirl_derive = { version = "0.0.0-alpha", optional = true }
 mirl_extensions = { version = "0.0.0-alpha", features = ["mirl_values"] }
 mirl_values_core = { version = "0.0.0-alpha" }
 num-bigfloat = "1.7"
-
 # For the "dynamic" numbers
 num-bigint = "0.5"
 num-traits = "0.2.19"
-serde = { version = "1", optional = true, default-features = false, features = [
+serde = { version = "1.0", optional = true, default-features = false, features = [
     "derive",
 ] }
-
 serde_json = { version = "1.0", optional = true }
-
 # Enum functionality
 strum = { version = "0.28", optional = true, default-features = false, features = [
     "derive",
 ] }
-# # Settings
-# indexmap = { version = "1.0", optional = true }
-
+# # Settings# indexmap = { version = "1.0", optional = true }
 # Support
 toml = { version = "1.1", optional = true }
 wincode = { version = "0.5", optional = true, features = ["derive"] }
