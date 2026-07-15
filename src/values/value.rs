@@ -74,12 +74,8 @@ pub enum Value<W: InnerCodecValue> {
 impl<W: InnerCodecValue> std::fmt::Debug for Value<W> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Simple(val) => {
-                f.debug_struct("Value").field("Simple", val).finish()
-            }
-            Self::Container(val) => {
-                f.debug_struct("Value").field("Container", val).finish()
-            }
+            Self::Simple(val) => f.debug_struct("Value").field("Simple", val).finish(),
+            Self::Container(val) => f.debug_struct("Value").field("Container", val).finish(),
         }
     }
 }
@@ -106,23 +102,17 @@ impl<W: crate::values::value::InnerCodecValue> From<SimpleValue> for Value<W> {
         Self::Simple(value)
     }
 }
-impl<W: crate::values::value::InnerCodecValue> From<ContainerValue<W::Inner>>
-    for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> From<ContainerValue<W::Inner>> for Value<W> {
     fn from(value: ContainerValue<W::Inner>) -> Self {
         Self::Container(value)
     }
 }
-impl<W: crate::values::value::InnerCodecValue> FromPatch<SimpleValue>
-    for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> FromPatch<SimpleValue> for Value<W> {
     fn from_value(value: SimpleValue) -> Self {
         Self::from(value)
     }
 }
-impl<W: crate::values::value::InnerCodecValue>
-    FromPatch<ContainerValue<W::Inner>> for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> FromPatch<ContainerValue<W::Inner>> for Value<W> {
     fn from_value(value: ContainerValue<W::Inner>) -> Self {
         Self::from(value)
     }
@@ -184,9 +174,7 @@ impl<W: crate::values::value::InnerCodecValue> Ord for Value<W>
         match (self, other) {
             (Self::Simple(a), Self::Simple(b)) => a.cmp(b),
             (Self::Simple(_), Self::Container(_)) => std::cmp::Ordering::Less,
-            (Self::Container(_), Self::Simple(_)) => {
-                std::cmp::Ordering::Greater
-            }
+            (Self::Container(_), Self::Simple(_)) => std::cmp::Ordering::Greater,
             (Self::Container(a), Self::Container(b)) => a.cmp(b),
         }
     }
@@ -212,9 +200,7 @@ use crate::settings::MapType;
 
 // ── impl for Value ────────────────────────────────────────────────────────────
 
-impl<W: crate::values::value::InnerCodecValue> CodecContainerSubValueRef
-    for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> CodecContainerSubValueRef for Value<W> {
     type InnerValue = W;
 
     fn as_container(&self) -> Option<&ContainerValue<W::Inner>> {
@@ -225,9 +211,7 @@ impl<W: crate::values::value::InnerCodecValue> CodecContainerSubValueRef
         }
     }
 }
-impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueRef
-    for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueRef for Value<W> {
     fn as_simple(&self) -> Option<&SimpleValue> {
         if let Self::Simple(s) = self {
             Some(s)
@@ -237,9 +221,7 @@ impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueRef
     }
 }
 
-impl<W: crate::values::value::InnerCodecValue> CodecContainerSubValueRefMut
-    for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> CodecContainerSubValueRefMut for Value<W> {
     type InnerValue = W;
 
     fn as_container_mut(&mut self) -> Option<&mut ContainerValue<W::Inner>> {
@@ -250,9 +232,7 @@ impl<W: crate::values::value::InnerCodecValue> CodecContainerSubValueRefMut
         }
     }
 }
-impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueRefMut
-    for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueRefMut for Value<W> {
     fn as_simple_mut(&mut self) -> Option<&mut SimpleValue> {
         if let Self::Simple(c) = self {
             Some(c)
@@ -262,9 +242,7 @@ impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueRefMut
     }
 }
 
-impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueInto
-    for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueInto for Value<W> {
     fn into_simple(self) -> Option<SimpleValue> {
         if let Self::Simple(s) = self {
             Some(s)
@@ -274,9 +252,7 @@ impl<W: crate::values::value::InnerCodecValue> CodecSimpleSubValueInto
     }
 }
 
-impl<W: crate::values::value::InnerCodecValue> CodecContainerSubValueInto
-    for Value<W>
-{
+impl<W: crate::values::value::InnerCodecValue> CodecContainerSubValueInto for Value<W> {
     type InnerValue = W;
 
     fn into_container(self) -> Option<ContainerValue<W::Inner>> {
@@ -308,9 +284,7 @@ where
     // }
     #[must_use]
     /// Turns Map<Value, Value> into Map<&String, &Value>
-    pub fn to_map_with_only_string_key(
-        self,
-    ) -> Option<crate::settings::MapType<String, V::Inner>> {
+    pub fn to_map_with_only_string_key(self) -> Option<crate::settings::MapType<String, V::Inner>> {
         let map = self.into_map()?;
         let mut new = MapType::new();
         for (value, item) in map {
@@ -487,9 +461,7 @@ impl<W: InnerCodecValue> Value<W> {
     /// Get the value as a Vec if it's a Vec
     ///
     /// Note that this function will not be removed for compatibility reasons
-    #[deprecated(
-        note = "It is recommended to use [`as_vec_ref`](Self::as_vec_ref)"
-    )]
+    #[deprecated(note = "It is recommended to use [`as_vec_ref`](Self::as_vec_ref)")]
     pub fn as_array(&self) -> Option<&Vec<W::Inner>> {
         self.as_vec_ref()
     }
@@ -497,9 +469,7 @@ impl<W: InnerCodecValue> Value<W> {
     /// Get the value as a String if it's a String
     ///
     /// Note that this function will not be removed for compatibility reasons
-    #[deprecated(
-        note = "It is recommended to use [`as_string_ref`](Self::as_string_ref)"
-    )]
+    #[deprecated(note = "It is recommended to use [`as_string_ref`](Self::as_string_ref)")]
     pub fn as_str(&self) -> Option<&String> {
         self.as_string_ref()
     }
@@ -507,9 +477,7 @@ impl<W: InnerCodecValue> Value<W> {
     /// Get the value as a String if it's a String
     ///
     /// Note that this function will not be removed for compatibility reasons
-    #[deprecated(
-        note = "It is recommended to use [`as_map_ref`](Self::as_map_ref)"
-    )]
+    #[deprecated(note = "It is recommended to use [`as_map_ref`](Self::as_map_ref)")]
     pub fn as_object(&self) -> Option<&MapType<W::Inner, W::Inner>> {
         self.as_map_ref()
     }

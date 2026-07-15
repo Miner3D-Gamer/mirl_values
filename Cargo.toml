@@ -7,30 +7,56 @@ license.workspace = true
 authors.workspace = true
 
 [features]
-all = ["all_codecs", "all_enum_extensions", "toml", "serde_json"]
+all = [
+    "all_codecs",
+    "all_enum_extensions",
+    "dep:toml",
+    "dep:serde_json",
+    "mirl_extensions/all",
+    "mirl_values_core/all",
+]
 # Does nothing by itself. Needs another codec or enum flag to do something
-mirl_derive = ["dep:mirl_derive"]
+mirl_derive = ["dep:mirl_derive", "mirl_values_core/mirl_derive"]
 # Compatibility with ffi
-c_compatible = ["mirl_derive"]
+c_compatible = [
+    "mirl_derive",
+    "mirl_extensions/c_compatible",
+    "mirl_values_core/c_compatible",
+]
 # Enables all codecs
-all_codecs = ["serde", "bitcode", "wincode", "compactly", "zerocopy"]
+all_codecs = [
+    "dep:serde",
+    "dep:bitcode",
+    "dep:wincode",
+    "dep:compactly",
+    "dep:zerocopy",
+    "mirl_values_core/all_codecs",
+]
 # All enum extensions
-all_enum_extensions = ["strum", "enum_ext"]
+all_enum_extensions = ["dep:strum", "dep:enum_ext", "mirl_values_core/all_enum_extensions"]
 # Codec stuff
-serde = ["dep:serde", "mirl_derive", "mirl_values_core/serde"]
+serde = [
+    "dep:serde",
+    "dep:mirl_derive",
+    "mirl_values_core/serde",
+    "bitcode?/serde",
+    "num-bigfloat/serde",
+    "num-bigint/serde",
+    "toml?/serde",
+]
 bitcode = ["dep:bitcode", "mirl_derive", "mirl_values_core/bitcode"]
 wincode = ["dep:wincode", "mirl_derive", "mirl_values_core/wincode"]
 compactly = ["dep:compactly", "mirl_derive", "mirl_values_core/compactly"]
 zerocopy = ["dep:zerocopy", "mirl_derive", "mirl_values_core/zerocopy"]
 # Enum extensions
-strum = ["dep:strum", "mirl_derive"]
-enum_ext = ["dep:enum_ext", "mirl_derive"]
+strum = ["dep:strum", "mirl_derive", "mirl_values_core/strum"]
+enum_ext = ["dep:enum_ext", "dep:mirl_derive", "mirl_values_core/enum_ext"]
 # preserve_entries = ["mirl_values_core/preserve_entries"]
 _checking = ["toml", "serde_json"]
 # Support
 toml = ["dep:toml", "mirl_values_core/toml"]
 serde_json = ["dep:serde_json"]
-serde_json_arbitrary_precision = ["serde_json", "serde_json/arbitrary_precision"]
+serde_json_arbitrary_precision = ["serde_json", "serde_json?/arbitrary_precision"]
 
 [dependencies]
 bitcode = { version = "0.6", optional = true, default-features = false, features = [

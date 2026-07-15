@@ -1,13 +1,12 @@
 //! A lib that more or less supports all formats
 //!
-//! Problem:
+//! Here is the Problem:
 //!     - `serde_json` doesn't support datetime from `toml`
 //!     - `toml` doesn't support value length from `css`
 //!     - and so on, everyone has their own "Value" enum(/struct)
 //!
 //! So what if we unify it every single unique "Value" enum(/struct) into a super [`Value`](crate::values::Value)?
-// #![feature(f16)]
-// #![feature(f128)]
+// TODO: Add simd_json support
 
 /// The settings for the crate
 pub mod settings {
@@ -29,10 +28,7 @@ pub use values::Value;
 /// Convert a map to a serde json map
 #[cfg(feature = "serde_json")]
 pub fn to_serde_json_map(
-    val: crate::settings::MapType<
-        Value<DefaultInnerValueSelf>,
-        Value<DefaultInnerValueSelf>,
-    >,
+    val: crate::settings::MapType<Value<DefaultInnerValueSelf>, Value<DefaultInnerValueSelf>>,
 ) -> Option<serde_json::Value> {
     let mut map = serde_json::map::Map::new();
     for (key, item) in val {
@@ -80,10 +76,7 @@ pub trait IndexValue<W: InnerCodecValue> {
     fn index_value<'a>(&self, v: &'a Value<W>) -> Option<&'a W::Inner>;
 
     /// Index into the given [Value] and return a mutable [Value] if the requested [Value] exists, otherwise return [None]
-    fn index_value_mut<'a>(
-        &self,
-        v: &'a mut Value<W>,
-    ) -> Option<&'a mut W::Inner>;
+    fn index_value_mut<'a>(&self, v: &'a mut Value<W>) -> Option<&'a mut W::Inner>;
 }
 
 impl<W: InnerCodecValue> IndexValue<W> for usize {
@@ -99,10 +92,7 @@ impl<W: InnerCodecValue> IndexValue<W> for usize {
             Value::Simple(_) => None,
         }
     }
-    fn index_value_mut<'a>(
-        &self,
-        v: &'a mut Value<W>,
-    ) -> Option<&'a mut W::Inner> {
+    fn index_value_mut<'a>(&self, v: &'a mut Value<W>) -> Option<&'a mut W::Inner> {
         #[allow(unreachable_patterns)]
         match v {
             Value::Container(container) => match container {
@@ -120,10 +110,7 @@ impl<W: InnerCodecValue> IndexValue<W> for str
 where
     W::Inner: CodecSimpleSubValueRef + CodecSimpleSubValueRefMut,
 {
-    fn index_value<'a>(
-        &self,
-        v: &'a values::value::Value<W>,
-    ) -> std::option::Option<&'a W::Inner> {
+    fn index_value<'a>(&self, v: &'a values::value::Value<W>) -> std::option::Option<&'a W::Inner> {
         match v {
             Value::Container(container) => match container {
                 ContainerValue::Map(val) => {
@@ -142,10 +129,7 @@ where
             Value::Simple(_) => None,
         }
     }
-    fn index_value_mut<'a>(
-        &self,
-        v: &'a mut Value<W>,
-    ) -> Option<&'a mut W::Inner> {
+    fn index_value_mut<'a>(&self, v: &'a mut Value<W>) -> Option<&'a mut W::Inner> {
         match v {
             Value::Container(container) => match container {
                 ContainerValue::Map(val) => {
@@ -188,12 +172,8 @@ pub fn number_to_serde_json_number(
     });
     #[cfg(not(feature = "serde_json_arbitrary_precision"))]
     match num {
-        mirl_values_core::value::Number::Int(num) => {
-            serde_json::Number::from_i128(num)
-        }
-        mirl_values_core::value::Number::Float(num) => {
-            serde_json::Number::from_f64(num)
-        }
+        mirl_values_core::value::Number::Int(num) => serde_json::Number::from_i128(num),
+        mirl_values_core::value::Number::Float(num) => serde_json::Number::from_f64(num),
         mirl_values_core::value::Number::BigInt(num) => {
             use num_traits::ToPrimitive;
 
@@ -241,9 +221,7 @@ use mirl_values_core::value::SimpleValue;
 /// Convert a [`SimpleValue`] into a [`serde_json::Value`] if possible
 #[cfg(feature = "serde_json")]
 #[must_use]
-pub fn simple_value_to_serde_json(
-    simple: SimpleValue,
-) -> Option<serde_json::Value> {
+pub fn simple_value_to_serde_json(simple: SimpleValue) -> Option<serde_json::Value> {
     match simple {
         SimpleValue::Bool(bool) => Some(serde_json::Value::Bool(bool)),
         SimpleValue::None => Some(serde_json::Value::Null),
@@ -267,11 +245,9 @@ pub fn container_value_to_serde_json(
     container: ContainerValue<Value<DefaultInnerValueSelf>>,
 ) -> Option<serde_json::Value> {
     match container {
-        ContainerValue::Map(map) => {
-            to_serde_json_map(crate::settings::MapType {
-                map: map.into_iter().map(|x| (x.0, x.1)).collect::<Vec<_>>(),
-            })
-        }
+        ContainerValue::Map(map) => to_serde_json_map(crate::settings::MapType {
+            map: map.into_iter().map(|x| (x.0, x.1)).collect::<Vec<_>>(),
+        }),
         ContainerValue::Vec(vec) => {
             let list: Vec<Option<serde_json::Value>> = vec
                 .into_iter()
@@ -292,9 +268,7 @@ pub fn container_value_to_serde_json(
 #[cfg(feature = "serde_json")]
 #[must_use]
 /// Convert this value type to [`serde_json::Value`] uses, this looses the position information
-pub fn value_to_serde_json(
-    val: Value<DefaultInnerValueSelf>,
-) -> Option<serde_json::Value> {
+pub fn value_to_serde_json(val: Value<DefaultInnerValueSelf>) -> Option<serde_json::Value> {
     match val {
         Value::Simple(simple) => simple_value_to_serde_json(simple),
         Value::Container(container) => container_value_to_serde_json(container),
