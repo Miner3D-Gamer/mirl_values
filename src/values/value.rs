@@ -461,7 +461,10 @@ impl<W: InnerCodecValue> Value<W> {
     /// Get the value as a Vec if it's a Vec
     ///
     /// Note that this function will not be removed for compatibility reasons
-    #[deprecated(note = "It is recommended to use [`as_vec_ref`](Self::as_vec_ref)")]
+    #[deprecated(
+        note = "It is recommended to use [`as_vec_ref`](Self::as_vec_ref)",
+        since = "0.0.0-alpha"
+    )]
     pub fn as_array(&self) -> Option<&Vec<W::Inner>> {
         self.as_vec_ref()
     }
@@ -469,7 +472,10 @@ impl<W: InnerCodecValue> Value<W> {
     /// Get the value as a String if it's a String
     ///
     /// Note that this function will not be removed for compatibility reasons
-    #[deprecated(note = "It is recommended to use [`as_string_ref`](Self::as_string_ref)")]
+    #[deprecated(
+        note = "It is recommended to use [`as_string_ref`](Self::as_string_ref)",
+        since = "0.0.0-alpha"
+    )]
     pub fn as_str(&self) -> Option<&String> {
         self.as_string_ref()
     }
@@ -477,7 +483,10 @@ impl<W: InnerCodecValue> Value<W> {
     /// Get the value as a String if it's a String
     ///
     /// Note that this function will not be removed for compatibility reasons
-    #[deprecated(note = "It is recommended to use [`as_map_ref`](Self::as_map_ref)")]
+    #[deprecated(
+        note = "It is recommended to use [`as_map_ref`](Self::as_map_ref)",
+        since = "0.0.0-alpha"
+    )]
     pub fn as_object(&self) -> Option<&MapType<W::Inner, W::Inner>> {
         self.as_map_ref()
     }

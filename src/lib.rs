@@ -7,6 +7,8 @@
 //!
 //! So what if we unify it every single unique "Value" enum(/struct) into a super [`Value`](crate::values::Value)?
 // TODO: Add simd_json support
+// #![feature(const_clone)]
+#![feature(const_trait_impl)]
 
 /// The settings for the crate
 pub mod settings {
